@@ -174,6 +174,7 @@ const password = asynchandler(async(req,res)=>{
 
         if(samepass){
             throw new Apierror(400,"Password already in use")
+           
         }
     
         loginuser.password = newpassword
