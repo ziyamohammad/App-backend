@@ -96,11 +96,11 @@ req.session.email = email
 const transporter = nodemailer.createTransport({
     service:"gmail",
     host:"smtp.gmail.com",
-    port:465,
+    // port:465,
     secure:true,
     auth:{
-       user:"ziya7376502028@gmail.com",
-       pass:"pujctdoeojaiiisj",
+       user: process.env.USER,
+       pass: process.env.PASS,
     }
 })
 
