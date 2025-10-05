@@ -3,7 +3,17 @@ import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { asynchandler } from "../utils/Asynchandler.js";
 
-
+const accessrefreshtoken = async(id) =>{
+    const loggedinuser = await user.findById(id)
+    if(!loggedinuser){
+        throw new Apierror(500,"Something went wrong")
+    }
+    const accessToken = await loggedinuser.AccessTokenGenerate()
+    const refreshToken = await loggedinuser.RefreshTokenGenerate()
+    loggedinuser.refreshtoken=refreshToken
+    loggedinuser.save({validateBeforeSave:false})
+    return ({accessToken,refreshToken})
+}
 const registeruser = asynchandler(async(req,res)=>{
     const{email,name,password} = req.body
     if(!email || !name || !password){
@@ -34,4 +44,28 @@ const registeruser = asynchandler(async(req,res)=>{
     .json(new Apiresponse(201,newuser,"User created succesfully"))
 })
 
-export {registeruser}
+const loginuser = asynchandler(async(req,res)=>{
+    const{email,password} = req.body 
+    if(!email || !password){
+        throw new Apierror(400,"All fields are mandatory")
+    }
+    const loginuser = await user.findOne({
+        $or:[{email}]
+    })
+    if(!loginuser){
+        throw new Apierror(300,"User not registered")
+    }
+
+    const passwordcheck = await loginuser.isPasswordCorrect(password)
+    if(!passwordcheck){
+        throw new Apierror(404,"Incorrect Password")
+    }
+
+    const{accessToken:accessToken , refreshToken:refreshToken}=await accessrefreshtoken(loginuser._id)
+
+    res
+    .status(200)
+    .json(new Apiresponse(201,"User logged in successfully",loginuser))
+})
+
+export {registeruser,loginuser}
