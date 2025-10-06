@@ -95,16 +95,13 @@ req.session.otpExpiry = Date.now() + 5 * 60 * 1000;
 req.session.email = email
 const transporter = nodemailer.createTransport({
     service:"gmail",
-    host: "smtp-relay.brevo.com",
-    port:587,
+    host: "smtp.gmail.com",
+    port:465,
     secure:true,
     auth:{
        user: process.env.USER,
        pass: process.env.PASS,
     },
-    connectionTimeout: 60000, // <-- 60 seconds
-  greetingTimeout: 30000,   // optional
-  socketTimeout: 60000      // optional
 })
 
 const mailoptions = {
