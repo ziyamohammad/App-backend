@@ -101,7 +101,10 @@ const transporter = nodemailer.createTransport({
     auth:{
        user: process.env.USER,
        pass: process.env.PASS,
-    }
+    },
+    connectionTimeout: 60000, // <-- 60 seconds
+  greetingTimeout: 30000,   // optional
+  socketTimeout: 60000      // optional
 })
 
 const mailoptions = {
