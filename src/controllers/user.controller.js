@@ -95,7 +95,6 @@ req.session.otpExpiry = Date.now() + 5 * 60 * 1000;
 req.session.email = email
 const transporter = nodemailer.createTransport({
     service:"gmail",
-    host: "smtp.gmail.com",
     port:465,
     secure:true,
     auth:{
