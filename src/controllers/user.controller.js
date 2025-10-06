@@ -94,6 +94,7 @@ req.session.otp = otp
 req.session.otpExpiry = Date.now() + 5 * 60 * 1000;
 req.session.email = email
 const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
     service:"gmail",
     port:465,
     secure:true,
@@ -101,6 +102,12 @@ const transporter = nodemailer.createTransport({
        user: process.env.USER,
        pass: process.env.PASS,
     },
+     connectionTimeout: 60000, // wait up to 60s to connect
+  greetingTimeout: 30000,   // wait for server greeting
+  socketTimeout: 60000,     // wait for data transfer
+  tls: {
+    rejectUnauthorized: false, // helps on Render sometimes
+  },
 })
 
 const mailoptions = {
