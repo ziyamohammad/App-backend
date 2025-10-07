@@ -2,7 +2,7 @@ import { user } from "../models/User.models.js";
 import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { asynchandler } from "../utils/Asynchandler.js";
-import nodemailer from "nodemailer"
+import sgMail from "@sendgrid/mail";
 
 const accessrefreshtoken = async(id) =>{
     const loggedinuser = await user.findById(id)
@@ -93,43 +93,22 @@ const otp = generateotp()
 req.session.otp = otp
 req.session.otpExpiry = Date.now() + 5 * 60 * 1000;
 req.session.email = email
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    service:"gmail",
-    port:465,
-    secure:true,
-    auth:{
-       user: process.env.USER,
-       pass: process.env.PASS,
-    },
-     connectionTimeout: 60000, // wait up to 60s to connect
-  greetingTimeout: 30000,   // wait for server greeting
-  socketTimeout: 60000,     // wait for data transfer
-  tls: {
-    rejectUnauthorized: false, // helps on Render sometimes
-  },
-})
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const mailoptions = {
-    to:email,
-    from:"ziya7376502028@gmail.com",
-    subject:"Income Tracker verification Mail",
-    text:`The otp for verifying is ${otp}`
+const msg = {
+  to: email,
+  from: "mohammad2311061@akgec.ac.in", // must be verified in SendGrid
+  subject: "Income Tracker verification Mail",
+  text: `Your OTP for verification is ${otp}. It is valid for 5 minutes.`,
+};
+
+try {
+  await sgMail.send(msg);
+  res.status(200).json(new Apiresponse(201, "OTP sent successfully", otp));
+} catch (error) {
+  console.error("Email send error:", error);
+  res.status(400).json(new Apierror(400, "Mail not sent"));
 }
-
-
-
-transporter.sendMail(mailoptions,(error,info)=>{
-    if(error){
-        console.error("Email send error:", error);
-      return res.status(400).json(new Apierror(400, "Mail not sent"));
-    }
-    else{
-        res.status(200)
-        .json(new Apiresponse(201,"Otp sent successfully",otp))
-    }
-})
-
 
 })
 
