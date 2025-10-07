@@ -94,9 +94,8 @@ req.session.otp = otp
 req.session.otpExpiry = Date.now() + 5 * 60 * 1000;
 req.session.email = email
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    service:"gmail",
-    port:465,
+   host: "live.smtp.mailtrap.io",
+  port: 587,
     secure:true,
     auth:{
        user: process.env.USER,
