@@ -3,17 +3,15 @@ import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { asynchandler } from "../utils/Asynchandler.js";
 import sgMail from "@sendgrid/mail";
+import jwt from "jsonwebtoken"
 
 const accessrefreshtoken = async(id) =>{
     const loggedinuser = await user.findById(id)
     if(!loggedinuser){
         throw new Apierror(500,"Something went wrong")
     }
-    const accessToken = await loggedinuser.AccessTokenGenerate()
-    const refreshToken = await loggedinuser.RefreshTokenGenerate()
-    loggedinuser.refreshtoken=refreshToken
-    loggedinuser.save({validateBeforeSave:false})
-    return ({accessToken,refreshToken})
+    const jwt_secret = await loggedinuser.TokenGenerate()
+    return (jwt_secret)
 }
 
 function generateotp() {
@@ -67,11 +65,13 @@ const loginuser = asynchandler(async(req,res)=>{
         throw new Apierror(404,"Incorrect Password")
     }
 
-    const{accessToken:accessToken , refreshToken:refreshToken}=await accessrefreshtoken(loginuser._id)
+    const jwt_secret=await accessrefreshtoken(loginuser._id)
 
-    res
-    .status(200)
-    .json(new Apiresponse(201,"User logged in successfully",loginuser))
+  res.status(200).json(
+    new Apiresponse(200, {
+      jwt_secret,
+    }, "User logged in successfully")
+  );
 })
 
 const resetpassword  = asynchandler(async(req,res)=>{
@@ -174,4 +174,42 @@ const password = asynchandler(async(req,res)=>{
     }
 })
 
-export {registeruser,loginuser,resetpassword,verifypassword,password}
+const amountadd = asynchandler(async(req,res)=>{
+    const {amount , title , category} = req.body 
+    if(!amount || !title || !category){
+       throw new Apierror(404,"Please enter all the fields")
+    }
+
+    const currentUser = await user.findById(req.user._id);
+  if (!currentUser) {
+    throw new Apierror(401, "Unauthorized user");
+  }
+
+  currentUser.income.push({ amount, title, category });
+
+  await currentUser.save({ validateBeforeSave: false });
+  res.status(200).json(
+    new Apiresponse(200, currentUser.income, "Income added successfully")
+  );
+})
+
+const token = asynchandler(async(req,res)=>{
+  const {token} = req.body 
+  if(!token){
+    throw new Apierror(404,"All fields are required")
+  }
+  const user1 = jwt.verify(token,process.env.ACCESS_TOKEN)
+  const email = user1.email
+
+  const loginuser = await user.findOne({email})
+  if(!loginuser){
+    throw new Apierror(400,"user not found")
+  }
+
+  res
+  .status(200)
+  .json(new Apiresponse(201,"User details found",loginuser))
+
+})
+
+export {registeruser,loginuser,resetpassword,verifypassword,token,password,amountadd}
