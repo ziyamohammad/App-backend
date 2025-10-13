@@ -2,6 +2,22 @@ import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
+
+const Moneyschema = new mongoose.Schema({
+    amount:{
+        type:Number,
+        required:true,
+    },
+    title:{
+        type:String,
+        required:true,
+    },
+    category:{
+        type:String,
+        required:true,
+    }
+},{timestamps:true})
+
 const Userschema =  new mongoose.Schema({
   name:{
     type:String,
@@ -17,18 +33,8 @@ const Userschema =  new mongoose.Schema({
     type:String,
     required:true,
   },
-  expenses:[
-    {
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"money"
-    }
-  ],
-  income:[
-    {
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"money"
-    }
-  ],
+  expenses:[Moneyschema],
+  income:[Moneyschema],
 },{timestamps:true})
 
 Userschema.pre("save",async function(next){

@@ -9,7 +9,7 @@ router.route("/login").post(loginuser)
 router.route("/otp").post(resetpassword)
 router.route("/verify").post(verifypassword)
 router.route("/change").post(password)
-router.route("/add").post(verifyjwt,amountadd)
+router.route("/add").post(amountadd)
 router.route("/all").post(token)
 
 export default router

@@ -1,3 +1,4 @@
+
 import { user } from "../models/User.models.js";
 import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
@@ -175,22 +176,32 @@ const password = asynchandler(async(req,res)=>{
 })
 
 const amountadd = asynchandler(async(req,res)=>{
-    const {amount , title , category} = req.body 
-    if(!amount || !title || !category){
+    const {amount , title , category ,token ,effect} = req.body 
+    if(!amount || !title || !category || !token ||!effect){
        throw new Apierror(404,"Please enter all the fields")
     }
 
-    const currentUser = await user.findById(req.user._id);
-  if (!currentUser) {
+  const currentuser = jwt.verify(token,process.env.ACCESS_TOKEN)
+  if (!currentuser) {
     throw new Apierror(401, "Unauthorized user");
   }
 
-  currentUser.income.push({ amount, title, category });
-
-  await currentUser.save({ validateBeforeSave: false });
-  res.status(200).json(
-    new Apiresponse(200, currentUser.income, "Income added successfully")
-  );
+  const email = currentuser.email
+  const loguser = await user.findOne({email})
+  if(!loguser){
+    throw new Apierror(400,"User not found")
+  }
+   if(effect==="income"){
+     loguser.income.push({ amount, title, category }); 
+   await loguser.save({ validateBeforeSave: false }); 
+   res.status(200).json( new Apiresponse(200, loguser.income, "Income added successfully") );
+   }
+   else{
+    loguser.expenses.push({ amount, title, category }); 
+   await loguser.save({ validateBeforeSave: false }); 
+   res.status(200).json( new Apiresponse(200, loguser.expenses, "Income added successfully") );
+   }
+   
 })
 
 const token = asynchandler(async(req,res)=>{
